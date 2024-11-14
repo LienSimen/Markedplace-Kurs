@@ -64,4 +64,27 @@ router.post("/update", upload.single("avatar"), async (req, res) => {
   });
 });
 
+router.post("/delete", async (req, res) => {
+  const username = req.session.username;
+
+  // SQL query to delete the user account
+  const query = `DELETE FROM users WHERE username = ?`;
+  db.query(query, [username], (err, result) => {
+    if (err) {
+      console.error("Error deleting account:", err);
+      return res.send("Error deleting account.");
+    }
+
+    // Destroy session and redirect to homepage or login page
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Error destroying session:", err);
+        return res.send("Error logging out.");
+      }
+      res.redirect("/"); // redirect home
+    });
+  });
+});
+
+
 module.exports = router;

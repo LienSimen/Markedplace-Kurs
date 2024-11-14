@@ -94,9 +94,26 @@
         >
           Back to Home
         </button>
+        <form
+          action="/profile/delete"
+          method="POST"
+          onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.')"
+        >
+          <button type="submit" class="btn btn-danger">Delete Account</button>
+        </form>
       </form>
     </main>
-
+    <script>
+      setTimeout(function () {
+        var flashMessage = document.getElementById("flash-message");
+        if (flashMessage) {
+          flashMessage.classList.add("fade-out");
+          setTimeout(function () {
+            flashMessage.style.display = "none";
+          }, 1000);
+        }
+      }, 3000);
+    </script>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
