@@ -64,7 +64,18 @@ router.post("/update", upload.single("avatar"), async (req, res) => {
   });
 });
 
-router.post("/delete", async (req, res) => {
+// Middleware to check if the user is logged in
+function isAuthenticated(req, res, next) {
+  if (req.session && req.session.username) {
+    return next();
+  } else {
+    req.session.message = "Please log in to perform this action.";
+    return res.redirect("/login");
+  }
+}
+
+// Apply the middleware to the delete route
+router.post("/delete", isAuthenticated, async (req, res) => {
   const username = req.session.username;
 
   // SQL query to delete the user account
@@ -81,10 +92,14 @@ router.post("/delete", async (req, res) => {
         console.error("Error destroying session:", err);
         return res.send("Error logging out.");
       }
-      res.redirect("/"); // redirect home
+      res.clearCookie("connect.sid"); // Clear session cookie
+      res.redirect("/"); // Redirect to home page
     });
   });
 });
+
+
+
 
 
 module.exports = router;

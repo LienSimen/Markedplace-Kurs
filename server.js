@@ -3,14 +3,11 @@ const express = require("express");
 const session = require("express-session");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
-const authRoutes = require("./routes/auth"); // Import auth routes
-const db = require("./db"); // Ensure db connection is established
+const authRoutes = require("./routes/auth");
+
+const db = require("./db"); 
 const app = express();
 const port = 3000;
-
-// Static files and middleware
-app.use(express.static("public"));
-app.use(express.urlencoded({ extended: true }));
 
 // Session setup
 app.use(
@@ -21,6 +18,14 @@ app.use(
     cookie: { secure: false },
   })
 );
+
+const profileRoutes = require("./routes/profile");
+app.use("/profile", profileRoutes);
+
+// Static files and middleware
+app.use(express.static("public"));
+app.use(express.urlencoded({ extended: true }));
+
 
 // Middleware to handle flash messages
 app.use((req, res, next) => {

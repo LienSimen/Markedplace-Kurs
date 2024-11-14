@@ -32,7 +32,7 @@ nav {
 h1 {
   font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
     "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
-  color: gold;
+  color: rgb(12, 11, 8);
 }
 
 li {
@@ -41,7 +41,7 @@ li {
 }
 
 p {
-  color: greenyellow;
+  color: rgb(3, 3, 3);
   font-family: Arial, Helvetica, sans-serif;
 }
 
