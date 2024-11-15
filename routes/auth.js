@@ -80,15 +80,18 @@ router.post("/login", (req, res) => {
 
 // Logout Route
 router.post("/logout", (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      req.session.message = "Error logging out. Please try again.";
-      return res.redirect("/");
-    }
-    res.clearCookie("connect.sid");
-    req.session.message = "Successfully logged out.";
-    res.redirect("/login");
-  });
+  if (req.session) {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Error destroying session:", err);
+        return res.status(500).send("Error logging out.");
+      }
+      res.clearCookie("connect.sid");
+      res.redirect("/login"); // Redirect to login page after logout
+    });
+  } else {
+    res.redirect("/login"); // Redirect even if session is undefined
+  }
 });
 
 // Profile Update Route
