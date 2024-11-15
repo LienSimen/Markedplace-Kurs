@@ -27,10 +27,9 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 
 
-// Middleware to handle flash messages
 app.use((req, res, next) => {
   res.locals.message = req.session.message;
-  delete req.session.message; // Clear the message after displaying it
+  delete req.session.message; // Clear the message after displaying it once
   next();
 });
 

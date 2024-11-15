@@ -3,18 +3,19 @@ const bcrypt = require("bcryptjs");
 const db = require("../db"); // Use the database connection
 const router = express.Router();
 
+// Middleware to check if the user is logged in
+const redirectIfLoggedIn = (req, res, next) => {
+  if (req.session.isLoggedIn) {
+    return res.redirect("/");
+  }
+  next();
+};
 
-router.get("/login", (req, res) => {
-  res.render("login", { message: req.session.message });
-  delete req.session.message;
+// Register Route
+router.get("/register", redirectIfLoggedIn, (req, res) => {
+  res.render("register");
 });
 
-router.get("/register", (req, res) => {
-  res.render("register", { message: req.session.message });
-  delete req.session.message;
-});
-
-// Registration route
 router.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
   const salt = await bcrypt.genSalt(10);
@@ -28,17 +29,24 @@ router.post("/register", async (req, res) => {
     (err, result) => {
       if (err) {
         console.error("Error inserting user data:", err);
-        return res.send("Error registering user.");
+        req.session.message = "Error registering user. Please try again.";
+        return res.redirect("/register");
       }
       req.session.isLoggedIn = true;
       req.session.username = username;
-      req.session.avatarUrl = "/images/default-avatar.png"; // Set default avatar URL
+      req.session.avatarUrl = "/images/default-avatar.png";
+      req.session.message =
+        "Registration successful! Welcome, " + username + "!";
       res.redirect("/");
     }
   );
 });
 
-// Login route
+// Login Route
+router.get("/login", redirectIfLoggedIn, (req, res) => {
+  res.render("login");
+});
+
 router.post("/login", (req, res) => {
   const { username, password } = req.body;
   const query = "SELECT * FROM users WHERE username = ?";
@@ -46,9 +54,13 @@ router.post("/login", (req, res) => {
   db.query(query, [username], async (err, results) => {
     if (err) {
       console.error("Error fetching user data:", err);
-      return res.send("Error logging in.");
+      req.session.message = "An error occurred. Please try again.";
+      return res.redirect("/login");
     }
-    if (results.length === 0) return res.send("Invalid username or password.");
+    if (results.length === 0) {
+      req.session.message = "Invalid username or password.";
+      return res.redirect("/login");
+    }
 
     const user = results[0];
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
@@ -56,21 +68,91 @@ router.post("/login", (req, res) => {
     if (isPasswordValid) {
       req.session.isLoggedIn = true;
       req.session.username = username;
-      req.session.avatarUrl = user.avatar_url; // Store avatar URL in session
+      req.session.avatarUrl = user.avatar_url;
       req.session.message = "Successfully logged in!";
       res.redirect("/");
     } else {
-      res.send("Invalid username or password.");
+      req.session.message = "Invalid username or password.";
+      res.redirect("/login");
     }
   });
 });
 
-// Logout route
+// Logout Route
 router.post("/logout", (req, res) => {
   req.session.destroy((err) => {
-    if (err) return res.send("Error logging out.");
+    if (err) {
+      req.session.message = "Error logging out. Please try again.";
+      return res.redirect("/");
+    }
     res.clearCookie("connect.sid");
-    res.redirect("/");
+    req.session.message = "Successfully logged out.";
+    res.redirect("/login");
+  });
+});
+
+// Profile Update Route
+router.post("/profile/update", async (req, res) => {
+  const { username, email, password } = req.body;
+  let avatarUrl = req.session.avatarUrl;
+
+  if (req.file) {
+    avatarUrl = `/uploads/${req.file.filename}`;
+  }
+
+  let passwordHash = null;
+  if (password) {
+    const salt = await bcrypt.genSalt(10);
+    passwordHash = await bcrypt.hash(password, salt);
+  }
+
+  const query = `
+    UPDATE users 
+    SET username = ?, email = ?, ${
+      passwordHash ? "password_hash = ?," : ""
+    } avatar_url = ? 
+    WHERE username = ?
+  `;
+  const values = [
+    username,
+    email,
+    ...(passwordHash ? [passwordHash] : []),
+    avatarUrl,
+    req.session.username,
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Error updating profile:", err);
+      req.session.message = "Error updating profile. Please try again.";
+      return res.redirect("/profile");
+    }
+    req.session.username = username;
+    req.session.avatarUrl = avatarUrl;
+    req.session.message = "Profile updated successfully!";
+    res.redirect("/profile");
+  });
+});
+
+// Account Deletion Route
+router.post("/account/delete", (req, res) => {
+  const query = "DELETE FROM users WHERE username = ?";
+  db.query(query, [req.session.username], (err, result) => {
+    if (err) {
+      console.error("Error deleting account:", err);
+      req.session.message = "Error deleting account. Please try again.";
+      return res.redirect("/profile");
+    }
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Error logging out after account deletion:", err);
+        req.session.message = "Account deleted, but error logging out.";
+        return res.redirect("/profile");
+      }
+      res.clearCookie("connect.sid");
+      req.session.message = "Account deleted successfully.";
+      res.redirect("/login");
+    });
   });
 });
 
