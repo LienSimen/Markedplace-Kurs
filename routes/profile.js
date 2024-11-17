@@ -1,10 +1,10 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
-const db = require("../db");
+const db = require("../config/db");
 const router = express.Router();
 
-// Multer for avatar uploads
+// === Multer Setup for Avatar Uploads ===
 const upload = multer({
   dest: "public/uploads/", // Destination folder for uploaded files
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB cap
@@ -17,29 +17,63 @@ const upload = multer({
   },
 });
 
-// Route to handle profile updates
-router.post("/update", upload.single("avatar"), async (req, res) => {
+// === Middleware to Check Authentication ===
+function isAuthenticated(req, res, next) {
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    return next();
+  }
+  if (req.session && req.session.isLoggedIn) {
+    return next();
+  }
+  res.redirect("/login");
+}
+
+// === GET /profile ===
+router.get("/", isAuthenticated, (req, res) => {
+  const query = `
+    SELECT username, email, avatar_url, dark_mode
+    FROM users WHERE username = ?
+  `;
+  db.query(query, [req.session.username], (err, results) => {
+    if (err) {
+      console.error("Error fetching profile data:", err);
+      return res.status(500).send("Error loading profile.");
+    }
+
+    if (results.length > 0) {
+      const user = results[0];
+      res.render("profile", {
+        username: user.username,
+        email: user.email,
+        avatarUrl: user.avatar_url,
+        darkMode: user.dark_mode || false,
+        message: req.session.message || null,
+      });
+      req.session.message = null; // Clear flash message
+    } else {
+      res.redirect("/login");
+    }
+  });
+});
+
+// === POST /profile/update ===
+router.post("/update", isAuthenticated, upload.single("avatar"), async (req, res) => {
   const { username, email, password } = req.body;
   let avatarUrl = req.session.avatarUrl; // Default to current avatar if none is uploaded
 
-  // Update avatar if a new file is uploaded
   if (req.file) {
     avatarUrl = `/uploads/${req.file.filename}`;
   }
 
-  // Hash the password if a new one is provided
   let passwordHash = null;
   if (password) {
     const salt = await bcrypt.genSalt(10);
     passwordHash = await bcrypt.hash(password, salt);
   }
 
-  // SQL query to update user data
   const query = `
     UPDATE users 
-    SET username = ?, email = ?, ${
-      passwordHash ? "password_hash = ?," : ""
-    } avatar_url = ? 
+    SET username = ?, email = ?, ${passwordHash ? "password_hash = ?," : ""} avatar_url = ? 
     WHERE username = ?
   `;
   const values = [
@@ -50,13 +84,12 @@ router.post("/update", upload.single("avatar"), async (req, res) => {
     req.session.username,
   ];
 
-  db.query(query, values, (err, result) => {
+  db.query(query, values, (err) => {
     if (err) {
       console.error("Error updating profile:", err);
-      return res.send("Error updating profile.");
+      return res.status(500).send("Error updating profile.");
     }
 
-    // Update session values
     req.session.username = username;
     req.session.avatarUrl = avatarUrl;
     req.session.message = "Profile updated successfully!";
@@ -64,42 +97,24 @@ router.post("/update", upload.single("avatar"), async (req, res) => {
   });
 });
 
-// Middleware to check if the user is logged in
-function isAuthenticated(req, res, next) {
-  if (req.session && req.session.username) {
-    return next();
-  } else {
-    req.session.message = "Please log in to perform this action.";
-    return res.redirect("/login");
-  }
-}
-
-// Apply the middleware to the delete route
-router.post("/delete", isAuthenticated, async (req, res) => {
-  const username = req.session.username;
-
-  // SQL query to delete the user account
-  const query = `DELETE FROM users WHERE username = ?`;
-  db.query(query, [username], (err, result) => {
+// === POST /profile/delete ===
+router.post("/delete", isAuthenticated, (req, res) => {
+  const query = "DELETE FROM users WHERE username = ?";
+  db.query(query, [req.session.username], (err) => {
     if (err) {
       console.error("Error deleting account:", err);
-      return res.send("Error deleting account.");
+      return res.status(500).send("Error deleting account.");
     }
 
-    // Destroy session and redirect to homepage or login page
     req.session.destroy((err) => {
       if (err) {
         console.error("Error destroying session:", err);
-        return res.send("Error logging out.");
+        return res.status(500).send("Error logging out.");
       }
       res.clearCookie("connect.sid"); // Clear session cookie
       res.redirect("/"); // Redirect to home page
     });
   });
 });
-
-
-
-
 
 module.exports = router;

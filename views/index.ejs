@@ -16,6 +16,7 @@
   <body>
     <main>
       <%- include('partials/flashMessage') %>
+      <%- include('partials/darkMode') %>
       <!-- Profile Dropdown Menu -->
       <div class="profile-container">
         <% if (isLoggedIn) { %>
@@ -49,6 +50,8 @@
         <% } else { %>
         <a class="header-btn" href="/login">Sign In</a>
         <a class="header-btn" href="/register">Register</a>
+        <a href="/auth/google" class="btn btn-danger w-100 mb-2">Login with Google</a>
+        <a href="/auth/github" class="btn btn-dark w-100">Login with GitHub</a>
         <% } %>
       </div>
     </main>
@@ -72,21 +75,7 @@
       crossorigin="anonymous"
     ></script>
 
-    <!-- Dark Mode Toggle Script -->
-    <script>
-      function toggleDarkMode() {
-        document.body.classList.toggle("dark-mode");
-        localStorage.setItem(
-          "darkMode",
-          document.body.classList.contains("dark-mode")
-        );
-      }
-
-      // Apply dark mode if previously enabled
-      if (localStorage.getItem("darkMode") === "true") {
-        document.body.classList.add("dark-mode");
-      }
-    </script>
+    <%- include('partials/darkMode') %>
 
     <script src="/js/flashMessage.js"></script>
   </body>

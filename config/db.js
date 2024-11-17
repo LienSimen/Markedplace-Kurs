@@ -23,6 +23,7 @@ db.connect((err) => {
       email VARCHAR(100) NOT NULL,
       password_hash VARCHAR(255) NOT NULL,
       avatar_url VARCHAR(255) DEFAULT '/images/default-avatar.png',
+      dark_mode BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `;

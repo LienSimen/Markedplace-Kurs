@@ -1,0 +1,26 @@
+<script>
+  function toggleDarkMode() {
+    const isDarkMode = document.body.classList.toggle("dark-mode");
+    console.log("Dark mode toggled:", isDarkMode); // Debugging
+
+    // Save the dark mode preference to the database
+    fetch("/dark-mode", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ darkMode: isDarkMode }), // Sending boolean
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to update dark mode preference.");
+        }
+        return response.text();
+      })
+      .then((data) => console.log("Server response:", data)) // Debugging
+      .catch((err) => console.error("Error:", err));
+  }
+
+  // Apply dark mode based on the session value passed from the server
+  if (<%= darkMode ? 'true' : 'false' %>) {
+    document.body.classList.add("dark-mode");
+  }
+</script>

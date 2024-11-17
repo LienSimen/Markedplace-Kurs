@@ -1,6 +1,5 @@
 body {
   background-color:#e7dddd;
-  /* background-image: url("/images/gadgetUnderground.jpg"); */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -20,29 +19,12 @@ body {
 }
 body.dark-mode {
   background-color: #121212;
-  color: #ffffff;
+  color: #f0e7e7;
 }
-
 
 nav {
   font-family: "Times New Roman", Times, serif;
   flex: auto;
-}
-
-h1 {
-  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
-    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
-  color: rgb(12, 11, 8);
-}
-
-li {
-  color: wheat;
-  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
-}
-
-p {
-  color: rgb(3, 3, 3);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .header-btn {
@@ -58,66 +40,11 @@ p {
   width: 100%;
 }
 
-.button1:hover {
-  box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24),
-    0 17px 50px 0 rgba(0, 0, 0, 0.19);
-}
 
-.buttonGreen {
-  background-color: #04aa6d;
-  border: none;
-  color: white;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-
-}
-
-.buttonRed {
-  background-color: #9b0b0b;
-  border: none;
-  color: white;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  -webkit-transition-duration: 0.4s;
-  transition-duration: 0.4s;
-}
 .center-container {
   text-align: center;
 }
 
-.button-container {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.buttonGreen,
-.buttonRed {
-  font-size: 16px;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  cursor: pointer;
-  transition-duration: 0.4s;
-}
-
-.buttonGreen:hover,
-.buttonRed:hover {
-  box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24),
-    0 17px 50px 0 rgba(0, 0, 0, 0.19);
-}
 
 /* Flash message styling */
 #flash-message {
@@ -131,7 +58,7 @@ p {
   z-index: 1000;
   text-align: center;
   background-color: #4caf50;
-  color: white;
+  color: rgb(243, 238, 238);
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   opacity: 1;
