@@ -20,11 +20,14 @@ db.connect((err) => {
     CREATE TABLE IF NOT EXISTS users (
       id INT AUTO_INCREMENT PRIMARY KEY,
       username VARCHAR(50) NOT NULL,
-      email VARCHAR(100) NOT NULL,
-      password_hash VARCHAR(255) NOT NULL,
+      email VARCHAR(100),
+      password_hash VARCHAR(255),
+      provider ENUM('google', 'github') DEFAULT NULL,
+      provider_id VARCHAR(255) DEFAULT NULL,
       avatar_url VARCHAR(255) DEFAULT '/images/default-avatar.png',
       dark_mode BOOLEAN DEFAULT FALSE,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (email, provider) -- Ensure unique combinations of email and provider
     )
   `;
   db.query(createUsersTable, (err, result) => {
