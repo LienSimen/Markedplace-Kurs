@@ -4,7 +4,7 @@ const multer = require("multer");
 const db = require("../config/db");
 const router = express.Router();
 
-// === Multer Setup for Avatar Uploads ===
+//  Multer Setup for Avatar Uploads 
 const upload = multer({
   dest: "public/uploads/", // Destination folder for uploaded files
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB cap
@@ -17,18 +17,15 @@ const upload = multer({
   },
 });
 
-// === Middleware to Check Authentication ===
+//  Middleware to Check Authentication 
 function isAuthenticated(req, res, next) {
-  if (req.isAuthenticated && req.isAuthenticated()) {
-    return next();
-  }
-  if (req.session && req.session.isLoggedIn) {
+  if (req.session || req.session.isLoggedIn) {
     return next();
   }
   res.redirect("/login");
 }
 
-// === GET /profile ===
+//  GET /profile 
 router.get("/", isAuthenticated, (req, res) => {
   const query = `
     SELECT username, email, avatar_url, dark_mode
@@ -42,6 +39,7 @@ router.get("/", isAuthenticated, (req, res) => {
 
     if (results.length > 0) {
       const user = results[0];
+    // In profile.js
       res.render("profile", {
         username: user.username,
         email: user.email,
@@ -49,45 +47,64 @@ router.get("/", isAuthenticated, (req, res) => {
         darkMode: user.dark_mode || false,
         message: req.session.message || null,
       });
-      req.session.message = null; // Clear flash message
+
+      req.session.message = null;
     } else {
       res.redirect("/login");
     }
   });
 });
 
-// === POST /profile/update ===
 router.post("/update", isAuthenticated, upload.single("avatar"), async (req, res) => {
-  const { username, email, password } = req.body;
-  let avatarUrl = req.session.avatarUrl; // Default to current avatar if none is uploaded
+  console.log("Request body:", req.body);
+  console.log("Session userId:", req.session.userId);
 
+  const { username, email, password } = req.body;
+
+  if (!username || !email) {
+    console.error("Validation failed: username or email is missing.");
+    req.session.message = "Username and email cannot be empty.";
+    return res.redirect("/profile");
+  }
+
+  console.log("Username:", username);
+  console.log("Email:", email);
+  console.log("Password:", password ? "Provided" : "Not provided");
+
+  let avatarUrl = req.session.avatarUrl || "/images/default-avatar.png";
   if (req.file) {
     avatarUrl = `/uploads/${req.file.filename}`;
+    console.log("New avatar uploaded:", avatarUrl);
   }
 
   let passwordHash = null;
   if (password) {
     const salt = await bcrypt.genSalt(10);
     passwordHash = await bcrypt.hash(password, salt);
+    console.log("Password hash generated.");
   }
 
   const query = `
     UPDATE users 
     SET username = ?, email = ?, ${passwordHash ? "password_hash = ?," : ""} avatar_url = ? 
-    WHERE username = ?
+    WHERE id = ?
   `;
   const values = [
     username,
     email,
     ...(passwordHash ? [passwordHash] : []),
     avatarUrl,
-    req.session.username,
+    req.session.userId,
   ];
+
+  console.log("Executing SQL Query:", query);
+  console.log("Query values:", values);
 
   db.query(query, values, (err) => {
     if (err) {
-      console.error("Error updating profile:", err);
-      return res.status(500).send("Error updating profile.");
+      console.error("Error executing query:", err);
+      req.session.message = "Error updating profile. Please try again.";
+      return res.redirect("/profile");
     }
 
     req.session.username = username;
@@ -97,7 +114,7 @@ router.post("/update", isAuthenticated, upload.single("avatar"), async (req, res
   });
 });
 
-// === POST /profile/delete ===
+//  POST /profile/delete 
 router.post("/delete", isAuthenticated, (req, res) => {
   const query = "DELETE FROM users WHERE username = ?";
   db.query(query, [req.session.username], (err) => {
@@ -111,8 +128,8 @@ router.post("/delete", isAuthenticated, (req, res) => {
         console.error("Error destroying session:", err);
         return res.status(500).send("Error logging out.");
       }
-      res.clearCookie("connect.sid"); // Clear session cookie
-      res.redirect("/"); // Redirect to home page
+      res.clearCookie("connect.sid");
+      res.redirect("/");
     });
   });
 });

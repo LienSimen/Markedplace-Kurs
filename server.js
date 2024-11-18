@@ -11,10 +11,10 @@ const port = 3000;
 //  Session Setup 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your_secret_key",
+    secret: "your_secret_key",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // Use secure: true in production with HTTPS
+    cookie: { secure: false },
   })
 );
 
@@ -47,6 +47,7 @@ app.get("/", (req, res) => {
   });
 });
 
+// 2FA Routes
 app.use("/2fa", twoFactorRoutes);
 
 //  Authentication Routes 

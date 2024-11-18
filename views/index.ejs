@@ -15,8 +15,8 @@
 
   <body>
     <main>
-      <%- include('partials/flashMessage') %>
-      <%- include('partials/darkMode') %>
+      <%- include('partials/_flashMessage') %>
+      <%- include('partials/_darkMode') %>
       <!-- Profile Dropdown Menu -->
       <div class="profile-container">
         <% if (isLoggedIn) { %>
@@ -75,7 +75,6 @@
       crossorigin="anonymous"
     ></script>
 
-    <%- include('partials/darkMode') %>
 
     <script src="/js/flashMessage.js"></script>
   </body>

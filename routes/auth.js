@@ -1,6 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const db = require("../config/db"); // Use the database connection
+const speakeasy = require("speakeasy");
+const db = require("../config/db"); 
 const passport = require("passport");
 const router = express.Router();
 
@@ -20,11 +21,30 @@ router.get(
   "/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
   (req, res) => {
-    req.session.isLoggedIn = true;
-    req.session.username = req.user.username;
-    req.session.avatarUrl = req.user.avatar_url;
-    req.session.message = `Welcome back, ${req.user.username}!`;
-    res.redirect("/"); // Redirect to home after login
+    const username = req.user.username;
+    db.query("SELECT * FROM users WHERE username = ?", [username], (err, results) => {
+      if (err || results.length === 0) {
+        req.session.message = "An error occurred. Please try again.";
+        return res.redirect("/login");
+      }
+      const user = results[0];
+      if (user.two_factor_enabled) {
+        // Store minimal session data
+        req.session.tempUserId = user.id;
+        req.session.tempUsername = username;
+        // Redirect to 2FA verification page
+        return res.redirect("/2fa/login");
+      } else {
+        // Complete login
+        req.session.isLoggedIn = true;
+        req.session.userId = user.id;
+        req.session.username = username;
+        req.session.avatarUrl = user.avatar_url;
+        req.session.darkMode = user.dark_mode;
+        req.session.message = `Welcome back, ${username}!`;
+        res.redirect("/");
+      }
+    });
   }
 );
 
@@ -35,14 +55,32 @@ router.get(
   "/auth/github/callback",
   passport.authenticate("github", { failureRedirect: "/login" }),
   (req, res) => {
-    req.session.isLoggedIn = true;
-    req.session.username = req.user.username;
-    req.session.avatarUrl = req.user.avatar_url;
-    req.session.message = `Welcome back, ${req.user.username}!`;
-    res.redirect("/"); // Redirect to home after login
+    const username = req.user.username;
+    db.query("SELECT * FROM users WHERE username = ?", [username], (err, results) => {
+      if (err || results.length === 0) {
+        req.session.message = "An error occurred. Please try again.";
+        return res.redirect("/login");
+      }
+      const user = results[0];
+      if (user.two_factor_enabled) {
+        // Store minimal session data
+        req.session.tempUserId = user.id;
+        req.session.tempUsername = username;
+        req.session.avatarUrl = user.avatar_url;
+        // Redirect to 2FA verification page
+        return res.redirect("/2fa/login");
+      } else {
+        // Complete login
+        req.session.isLoggedIn = true;
+        req.session.userId = user.id;
+        req.session.username = username;
+        req.session.avatarUrl = user.avatar_url;
+        req.session.message = `Welcome back, ${username}!`;
+        res.redirect("/");
+      }
+    });
   }
 );
-
 
 // Register Route
 router.get("/register", redirectIfLoggedIn, (req, res) => {
@@ -85,6 +123,7 @@ router.get("/login", redirectIfLoggedIn, (req, res) => {
 });
 
 
+// Login Route
 router.post("/login", (req, res) => {
   const { username, password } = req.body;
   const query = "SELECT * FROM users WHERE username = ?";
@@ -104,15 +143,80 @@ router.post("/login", (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
     if (isPasswordValid) {
-      req.session.isLoggedIn = true;
-      req.session.username = username;
-      req.session.avatarUrl = user.avatar_url;
-      req.session.darkMode = user.dark_mode; // Retrieve dark_mode from DB
-      req.session.message = "Successfully logged in!";
-      res.redirect("/");
+      if (user.two_factor_enabled) {
+        // Store minimal session data
+        req.session.tempUserId = user.id;
+        req.session.tempUsername = username;
+        // Redirect to 2FA verification page
+        return res.redirect("/2fa/login");
+      } else {
+        // Complete login
+        req.session.isLoggedIn = true;
+        req.session.userId = user.id;
+        req.session.username = username;
+        req.session.avatarUrl = user.avatar_url;
+        req.session.darkMode = user.dark_mode;
+        req.session.message = "Successfully logged in!";
+        res.redirect("/");
+      }
     } else {
       req.session.message = "Invalid username or password.";
       res.redirect("/login");
+    }
+  });
+});
+
+// GET 2FA Login Page
+router.get("/2fa/login", (req, res) => {
+  if (!req.session.tempUserId) {
+    return res.redirect("/login");
+  }
+  res.render("2fa-login", {
+    username: req.session.tempUsername,
+    message: req.session.message || null,
+    darkMode: req.session.darkMode || false,
+  });
+});
+
+// POST 2FA Verification During Login
+router.post("/2fa/login", (req, res) => {
+  const { token } = req.body;
+  const userId = req.session.tempUserId;
+
+  if (!userId || !token) {
+    req.session.message = "Invalid request.";
+    return res.redirect("/login");
+  }
+
+  db.query("SELECT * FROM users WHERE id = ?", [userId], (err, results) => {
+    if (err || results.length === 0) {
+      req.session.message = "Failed to verify 2FA.";
+      return res.redirect("/login");
+    }
+
+    const user = results[0];
+
+    const isValid = speakeasy.totp.verify({
+      secret: user.two_factor_secret,
+      encoding: "base32",
+      token,
+    });
+
+    if (isValid) {
+      // Complete login
+      req.session.isLoggedIn = true;
+      req.session.userId = user.id;
+      req.session.username = user.username;
+      req.session.avatarUrl = user.avatar_url;
+      req.session.darkMode = user.dark_mode;
+      // Clear temporary session variables
+      req.session.tempUserId = null;
+      req.session.tempUsername = null;
+      req.session.message = "Successfully logged in!";
+      res.redirect("/");
+    } else {
+      req.session.message = "Invalid 2FA token. Try again.";
+      res.redirect("/2fa/login");
     }
   });
 });
@@ -157,69 +261,5 @@ router.post("/logout", (req, res) => {
   }
 });
 
-// Profile Update Route
-router.post("/profile/update", async (req, res) => {
-  const { username, email, password } = req.body;
-  let avatarUrl = req.session.avatarUrl;
-
-  if (req.file) {
-    avatarUrl = `/uploads/${req.file.filename}`;
-  }
-
-  let passwordHash = null;
-  if (password) {
-    const salt = await bcrypt.genSalt(10);
-    passwordHash = await bcrypt.hash(password, salt);
-  }
-
-  const query = `
-    UPDATE users 
-    SET username = ?, email = ?, ${
-      passwordHash ? "password_hash = ?," : ""
-    } avatar_url = ? 
-    WHERE username = ?
-  `;
-  const values = [
-    username,
-    email,
-    ...(passwordHash ? [passwordHash] : []),
-    avatarUrl,
-    req.session.username,
-  ];
-
-  db.query(query, values, (err, result) => {
-    if (err) {
-      console.error("Error updating profile:", err);
-      req.session.message = "Error updating profile. Please try again.";
-      return res.redirect("/profile");
-    }
-    req.session.username = username;
-    req.session.avatarUrl = avatarUrl;
-    req.session.message = "Profile updated successfully!";
-    res.redirect("/profile");
-  });
-});
-
-// Account Deletion Route
-router.post("/account/delete", (req, res) => {
-  const query = "DELETE FROM users WHERE username = ?";
-  db.query(query, [req.session.username], (err, result) => {
-    if (err) {
-      console.error("Error deleting account:", err);
-      req.session.message = "Error deleting account. Please try again.";
-      return res.redirect("/profile");
-    }
-    req.session.destroy((err) => {
-      if (err) {
-        console.error("Error logging out after account deletion:", err);
-        req.session.message = "Account deleted, but error logging out.";
-        return res.redirect("/profile");
-      }
-      res.clearCookie("connect.sid");
-      req.session.message = "Account deleted successfully.";
-      res.redirect("/login");
-    });
-  });
-});
 
 module.exports = router;
