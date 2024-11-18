@@ -26,6 +26,8 @@ db.connect((err) => {
       provider_id VARCHAR(255) DEFAULT NULL,
       avatar_url VARCHAR(255) DEFAULT '/images/default-avatar.png',
       dark_mode BOOLEAN DEFAULT FALSE,
+      two_factor_enabled BOOLEAN DEFAULT FALSE, -- New column for 2FA enabled status
+      two_factor_secret VARCHAR(255) DEFAULT NULL, -- New column for 2FA secret
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       UNIQUE (email, provider) -- Ensure unique combinations of email and provider
     )
