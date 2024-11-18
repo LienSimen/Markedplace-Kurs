@@ -16,6 +16,7 @@ Login to your db and query:
 CREATE DATABASE markedplace;
 ```
 
+In Terminal:
 
 ```bash
 git clone https://github.com/LienSimen/Markedplace-Kurs
