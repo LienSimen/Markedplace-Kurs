@@ -86,7 +86,8 @@ router.post("/disable", (req, res) => {
   if (!userId || !token) {
     return res.status(400).json({ message: "Invalid request." });
   }
-
+  console.log("User ID:", userId);
+  console.log("Token received:", token);
   db.query("SELECT two_factor_secret FROM users WHERE id = ?", [userId], (err, results) => {
     if (err || results.length === 0) {
       return res.status(500).json({ message: "Failed to disable 2FA." });

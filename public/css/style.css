@@ -7,6 +7,41 @@ body {
   margin: 0;
 }
 
+
+/* New css form validation. Very nice! */
+
+@keyframes fadeOut {
+  0% {
+    color: inherit;
+  }
+  10% {
+    color: #4caf50;
+  }
+  100% {
+    color: inherit;
+  }
+}
+
+input:user-valid {
+  animation: fadeOut 2s forwards;
+}
+
+@keyframes fadeOutInvalid {
+  0% {
+    color: inherit;
+  }
+  10% {
+    color: #f44336;
+  }
+  100% {
+    color: inherit;
+  }
+}
+
+input:user-invalid {
+  animation: fadeOutInvalid 2s forwards;
+}
+
 .avatar-icon {
   width: 40px;
   height: 40px;
@@ -46,10 +81,11 @@ nav {
 }
 
 
-/* Flash message styling */
 #flash-message {
+  translate: 0 0;
+  transition: translate 0.7s ease-out;
   position: fixed;
-  top: 0;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
   width: auto;
@@ -61,11 +97,10 @@ nav {
   color: rgb(243, 238, 238);
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  opacity: 1;
-  transition: opacity 1s ease;
 }
 
-/* Fade out by reducing opacity */
-.fade-out {
-  opacity: 0;
+/* When the flash message is being hidden */
+#flash-message.hidden {
+  translate: 0 -100%;
+  transition: translate 0.7s ease-out;
 }

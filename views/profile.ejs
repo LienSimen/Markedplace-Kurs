@@ -16,40 +16,44 @@
   <body>
     <main class="container mt-4">
       <h1>Edit Profile</h1>
-      <%- include('partials/_twoFactor') %>
+      <!-- Include Two-Factor Authentication Section -->
+      <%- include('partials/_twoFactor', { twoFactorEnabled: twoFactorEnabled }) %>
+      <!-- Include Flash Messages -->
       <%- include('partials/_flashMessage') %>
+      <!-- Include Dark Mode Toggle -->
       <%- include('partials/_darkMode') %>
+
+      <!-- Profile Update Form -->
       <form
         action="/profile/update"
         method="POST"
         enctype="multipart/form-data"
       >
-      <!-- Username -->
-      <div class="mb-3">
-        <label for="username" class="form-label">Username</label>
-        <input
-          type="text"
-          class="form-control"
-          id="username"
-          name="username"
-          value="<%= username %>"
-          required
-        />
-      </div>
+        <!-- Username -->
+        <div class="mb-3">
+          <label for="username" class="form-label">Username</label>
+          <input
+            type="text"
+            class="form-control"
+            id="username"
+            name="username"
+            value="<%= username %>"
+            required
+          />
+        </div>
 
-      <!-- Email -->
-      <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <input
-          type="email"
-          class="form-control"
-          id="email"
-          name="email"
-          value="<%= email %>"
-          required
-        />
-      </div>
-
+        <!-- Email -->
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            name="email"
+            value="<%= email %>"
+            required
+          />
+        </div>
 
         <!-- Password -->
         <div class="mb-3">
@@ -92,6 +96,7 @@
         </button>
       </form>
       
+      <!-- Delete Account Form -->
       <form
         action="/profile/delete"
         method="POST"

@@ -13,7 +13,6 @@ const redirectIfLoggedIn = (req, res, next) => {
   next();
 };
 
-
 // Google Authentication
 router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 

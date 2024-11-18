@@ -28,30 +28,24 @@ function isAuthenticated(req, res, next) {
 //  GET /profile 
 router.get("/", isAuthenticated, (req, res) => {
   const query = `
-    SELECT username, email, avatar_url, dark_mode
-    FROM users WHERE username = ?
+    SELECT username, email, avatar_url, dark_mode, two_factor_enabled
+    FROM users WHERE id = ?
   `;
-  db.query(query, [req.session.username], (err, results) => {
-    if (err) {
-      console.error("Error fetching profile data:", err);
-      return res.status(500).send("Error loading profile.");
+  db.query(query, [req.session.userId], (err, results) => {
+    if (err || results.length === 0) {
+      req.session.message = "Error loading profile.";
+      return res.redirect("/login");
     }
 
-    if (results.length > 0) {
-      const user = results[0];
-    // In profile.js
-      res.render("profile", {
-        username: user.username,
-        email: user.email,
-        avatarUrl: user.avatar_url,
-        darkMode: user.dark_mode || false,
-        message: req.session.message || null,
-      });
-
-      req.session.message = null;
-    } else {
-      res.redirect("/login");
-    }
+    const user = results[0];
+    res.render("profile", {
+      username: user.username,
+      email: user.email,
+      avatarUrl: user.avatar_url,
+      darkMode: user.dark_mode,
+      twoFactorEnabled: user.two_factor_enabled,
+      message: req.session.message || null,
+    });
   });
 });
 
@@ -66,11 +60,6 @@ router.post("/update", isAuthenticated, upload.single("avatar"), async (req, res
     req.session.message = "Username and email cannot be empty.";
     return res.redirect("/profile");
   }
-
-  console.log("Username:", username);
-  console.log("Email:", email);
-  console.log("Password:", password ? "Provided" : "Not provided");
-
   let avatarUrl = req.session.avatarUrl || "/images/default-avatar.png";
   if (req.file) {
     avatarUrl = `/uploads/${req.file.filename}`;
