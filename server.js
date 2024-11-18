@@ -4,7 +4,7 @@ const session = require("express-session");
 const authRoutes = require("./routes/auth");
 const profileRoutes = require("./routes/profile");
 const passport = require("./config/passport-config");
-
+const twoFactorRoutes = require("./routes/twoFactor");
 const app = express();
 const port = 3000;
 
@@ -46,6 +46,8 @@ app.get("/", (req, res) => {
     darkMode: req.session.darkMode || false,
   });
 });
+
+app.use("/2fa", twoFactorRoutes);
 
 //  Authentication Routes 
 app.use("/", authRoutes);
