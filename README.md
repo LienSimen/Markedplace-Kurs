@@ -25,7 +25,6 @@ cd markedplace-kurs
 
 Create .env file in root folder, google cli/github can be left blank
 ``` bash
-.env
 DB_HOST=localhost
 DB_USER=user
 DB_PASSWORD=password
