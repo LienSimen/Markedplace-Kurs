@@ -23,13 +23,15 @@ git clone https://github.com/LienSimen/Markedplace-Kurs
 cd markedplace-kurs
 ```
 
-Create .env file in root folder, google cli/github can be left blank
+Create .env file in root folder, google cli/github can be left blank. Email stuff for forgot password / verification
 ``` bash
 DB_HOST=localhost
 DB_USER=user
 DB_PASSWORD=password
 DB_NAME=markedplace
 DB_PORT=3306
+EMAIL_USER=
+EMAIL_PASS=
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GITHUB_CLIENT_ID=

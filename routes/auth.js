@@ -137,14 +137,15 @@ router.get("/login", redirectIfLoggedIn, (req, res) => {
 
 router.post("/login", (req, res) => {
   const { username, password } = req.body;
-  const query = "SELECT * FROM users WHERE username = ?";
 
+  const query = "SELECT * FROM users WHERE username = ?";
   db.query(query, [username], async (err, results) => {
     if (err) {
       console.error("Error fetching user data:", err);
       req.session.message = "An error occurred. Please try again.";
       return res.redirect("/login");
     }
+
     if (results.length === 0) {
       req.session.message = "Invalid username or password.";
       return res.redirect("/login");
@@ -154,26 +155,20 @@ router.post("/login", (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
     if (isPasswordValid) {
-      if (user.two_factor_enabled) {
-        req.session.isLoggedIn = false;
-        req.session.userId = user.id;
-        req.session.username = username;
-        res.redirect("/2fa/login");
-      } else {
-        req.session.isLoggedIn = true;
-        req.session.userId = user.id;
-        req.session.username = username;
-        req.session.avatarUrl = user.avatar_url;
-        req.session.darkMode = user.dark_mode;
-        req.session.message = "Successfully logged in!";
-        res.redirect("/profile");
-      }
+      req.session.isLoggedIn = true;
+      req.session.userId = user.id; // Store user ID in session
+      req.session.username = user.username; // Store username in session
+      req.session.email = user.email; // Store email in session
+      req.session.avatarUrl = user.avatar_url;
+      req.session.message = "Successfully logged in!";
+      res.redirect("/profile");
     } else {
       req.session.message = "Invalid username or password.";
       res.redirect("/login");
     }
   });
 });
+
 
 router.get("/forgot-password", (req, res) => {
   res.render("forgot-password", {
