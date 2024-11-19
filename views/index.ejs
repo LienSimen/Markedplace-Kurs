@@ -1,56 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gold Marketplace</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" defer></script>
-  <link rel="stylesheet" href="./css/style.css" />
-  <script src="/js/flashMessage.js" defer></script>
-</head>
-
-<body>
-  <main>
-    <%- include('partials/_flashMessage') %>
-    <%- include('partials/_darkMode') %>
-    <!-- Profile Dropdown Menu -->
-    <div class="profile-container">
-      <% if (isLoggedIn) { %>
-      <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-          <img src="<%= avatarUrl %>" alt="Profile" class="avatar-icon" />
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
-          <li><a class="dropdown-item" href="/profile">Edit Profile</a></li>
-          <li>
-            <button class="dropdown-item" onclick="toggleDarkMode()">
-              Toggle Dark Mode
-            </button>
-          </li>
-          <li>
-            <form action="/logout" method="POST">
-              <button type="submit" class="dropdown-item">Log Out</button>
-            </form>
-          </li>
-        </ul>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gold Marketplace</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous" defer
+    ></script>
+    <link rel="stylesheet" href="./css/style.css" />
+    <script src="/js/flashMessage.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <%- include('partials/_flashMessage') %>
+      <%- include('partials/_darkMode') %>
+      <!-- Profile Dropdown Menu -->
+      <div class="profile-container">
+        <% if (isLoggedIn) { %>
+        <div class="dropdown">
+          <button
+            class="btn btn-secondary dropdown-toggle"
+            type="button"
+            id="profileDropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <img src="<%= avatarUrl %>" alt="Profile" class="avatar-icon" />
+          </button>
+          <ul
+            class="dropdown-menu dropdown-menu-end"
+            aria-labelledby="profileDropdown"
+          >
+            <li><a class="dropdown-item" href="/profile">Edit Profile</a></li>
+            <li>
+              <button class="dropdown-item" onclick="toggleDarkMode()">
+                Toggle Dark Mode
+              </button>
+            </li>
+            <li>
+              <form action="/logout" method="POST">
+                <button type="submit" class="dropdown-item">Log Out</button>
+              </form>
+            </li>
+          </ul>
+        </div>
+        <% } else { %>
+        <a class="header-btn" href="/login">Sign In</a>
+        <a class="header-btn" href="/register">Register</a>
+        <a href="/auth/google" class="btn btn-danger w-100 mb-2">Login with Google</a>
+        <a href="/auth/github" class="btn btn-dark w-100">Login with GitHub</a>
+        <% } %>
       </div>
-      <% } else { %>
-      <a class="header-btn" href="/login">Sign In</a>
-      <a class="header-btn" href="/register">Register</a>
-      <a href="/auth/google" class="btn btn-danger w-100 mb-2">Login with Google</a>
-      <a href="/auth/github" class="btn btn-dark w-100">Login with GitHub</a>
-      <% } %>
-    </div>
-  </main>
+    </main>
+<iframe
+  id="wormIframe"
+  src="/worm-sim/index.html"
+  style="width: 100%; height: 100%; border: none;"
+  title="Worm Simulation"
+></iframe>
 
-  <footer id="footer">
-    <p>
-      Author:
-      <a href="mailto:lisis112024@gmail.com" aria-label="My Email" title="Not ISIS">Simen Lien</a>
-    </p>
-  </footer>
-</body>
-
+  </body>
 </html>
