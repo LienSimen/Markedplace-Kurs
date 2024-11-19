@@ -1,9 +1,5 @@
+
 <div class="mt-4">
-<% if (message) { %>
-  <div id="flash-message" class="alert alert-info">
-    <%= message %>
-  </div>
-<% } %>
   <% if (twoFactorEnabled) { %>
     <!-- Disable 2FA Button -->
     <form action="/2fa/disable" method="POST" onsubmit="return confirm('Are you sure you want to disable Two-Factor Authentication?');">
@@ -22,10 +18,12 @@
     </form>
   <% } else { %>
     <!-- Enable 2FA Button -->
+    
     <button id="enable2fa" class="btn btn-secondary">Start Two-Factor Authentication</button>
   <% } %>
 </div>
   <!-- 2FA Modal -->
+  <div id="modal-flash-message" class="alert alert-info d-none"></div>
   <div class="modal fade" id="twoFactorModal" tabindex="-1" aria-labelledby="twoFactorModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -66,12 +64,20 @@
       document.querySelector(".modal-body").classList.remove("d-none");
       document.getElementById("verify2faForm").classList.remove("d-none");
 
+
+      // Apply dark mode to modal if enabled
+      const darkMode = document.body.classList.contains("dark-mode");
+      if (darkMode) {
+        document.getElementById("twoFactorModal").classList.add("dark-mode");
+      } else {
+        document.getElementById("twoFactorModal").classList.remove("dark-mode");
+      }
       // Show the modal
       new bootstrap.Modal(document.getElementById("twoFactorModal")).show();
     } catch (error) {
       alert(error.message);
     }
-  });
+  }); 
 
   document.getElementById("verify2faForm")?.addEventListener("submit", async (event) => {
     event.preventDefault();

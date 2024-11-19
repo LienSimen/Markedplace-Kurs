@@ -4,7 +4,6 @@ const multer = require("multer");
 const db = require("../config/db");
 const router = express.Router();
 
-//  Multer Setup for Avatar Uploads 
 const upload = multer({
   dest: "public/uploads/", // Destination folder for uploaded files
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB cap
@@ -12,10 +11,17 @@ const upload = multer({
     const filetypes = /jpeg|jpg|png/;
     const extname = filetypes.test(file.originalname.toLowerCase());
     const mimetype = filetypes.test(file.mimetype);
-    if (mimetype && extname) return cb(null, true);
-    cb(new Error("Only JPEG, JPG, or PNG files are allowed."));
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+
+    // Set flash message for invalid file type
+    req.session.message = "Only JPEG, JPG, or PNG files are allowed.";
+    return cb(null, false); // Reject file but don't trigger a fatal error
   },
 });
+
 
 //  Middleware to Check Authentication 
 function isAuthenticated(req, res, next) {
@@ -38,24 +44,37 @@ router.get("/", isAuthenticated, (req, res) => {
     }
 
     const user = results[0];
+
+    const flashMessage = req.session.message || null; // Retrieve flash message
+    req.session.message = null; // Clear it explicitly
+
     res.render("profile", {
       username: user.username,
       email: user.email,
       avatarUrl: user.avatar_url,
       darkMode: user.dark_mode,
       twoFactorEnabled: user.two_factor_enabled,
-      message: req.session.message || null,
+      message: flashMessage,
     });
   });
 });
 
+
 router.post("/update", isAuthenticated, upload.single("avatar"), async (req, res) => {
   const { username, email, password } = req.body;
+
+  // Validation for required fields
   if (!username || !email) {
-    console.error("Validation failed: username or email is missing.");
     req.session.message = "Username and email cannot be empty.";
     return res.redirect("/profile");
   }
+
+  // Handle invalid file upload
+  if (!req.file && req.session.message) {
+    console.log("Flash Message for File Error:", req.session.message); // Debugging log
+    return res.redirect("/profile");
+  }
+
   let avatarUrl = req.session.avatarUrl || "/images/default-avatar.png";
   if (req.file) {
     avatarUrl = `/uploads/${req.file.filename}`;
@@ -82,7 +101,6 @@ router.post("/update", isAuthenticated, upload.single("avatar"), async (req, res
 
   db.query(query, values, (err) => {
     if (err) {
-      console.error("Error executing query:", err);
       req.session.message = "Error updating profile. Please try again.";
       return res.redirect("/profile");
     }

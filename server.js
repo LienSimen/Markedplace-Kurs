@@ -29,8 +29,8 @@ app.use(express.static("public"));
 
 //  Flash Messages Middleware 
 app.use((req, res, next) => {
+  console.log("Middleware - Flash message:", req.session.message); // Debug log
   res.locals.message = req.session.message || null;
-  delete req.session.message; // Clear flash message after displaying
   next();
 });
 

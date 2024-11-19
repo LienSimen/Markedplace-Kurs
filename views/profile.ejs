@@ -10,19 +10,21 @@
       integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous"
     />
+   
     <link rel="stylesheet" href="/css/style.css" />
   </head>
 
   <body>
+    <!-- Include Flash Messages -->
+    <%- include('partials/_flashMessage') %>
+    <!-- Include Dark Mode Toggle --> 
+    <%- include('partials/_darkMode') %>
     <main class="container mt-4">
       <h1>Edit Profile</h1>
+
       <!-- Include Two-Factor Authentication Section -->
       <%- include('partials/_twoFactor', { twoFactorEnabled: twoFactorEnabled }) %>
-      <!-- Include Flash Messages -->
-      <%- include('partials/_flashMessage') %>
-      <!-- Include Dark Mode Toggle -->
-      <%- include('partials/_darkMode') %>
-
+      
       <!-- Profile Update Form -->
       <form
         action="/profile/update"
@@ -71,21 +73,25 @@
         <!-- Avatar -->
         <div class="mb-3">
           <label for="avatar" class="form-label">Avatar</label>
+          <!-- File input remains visible -->
           <input type="file" class="form-control" id="avatar" name="avatar" />
+
           <% if (avatarUrl) { %>
           <div class="mt-2">
-            <p>Current Avatar:</p>
             <img
               src="<%= avatarUrl %>"
               alt="Avatar"
               class="avatar-preview"
-              style="width: 100px; height: 100px; border-radius: 50%"
+              style="width: 100px; height: 100px; border-radius: 50%; cursor: pointer;"
+              onclick="document.getElementById('avatar').click()"
             />
           </div>
           <% } %>
         </div>
 
-        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <nav id="bottomNav">
+        <button type="submit" class="btn btn-primary" onclick=alert(req.session.message)>Save Changes</button>
+      
         <button
           type="button"
           class="btn btn-primary"
@@ -103,6 +109,7 @@
       >
         <button type="submit" class="btn btn-danger">Delete Account</button>
       </form>
+    </nav>
     </main>
 
     <script
@@ -111,6 +118,5 @@
       crossorigin="anonymous"
     ></script>
     <script src="/js/flashMessage.js"></script>
-
   </body>
 </html>
