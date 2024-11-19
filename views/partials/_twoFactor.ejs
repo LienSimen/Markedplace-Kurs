@@ -1,4 +1,9 @@
 <div class="mt-4">
+<% if (message) { %>
+  <div id="flash-message" class="alert alert-info">
+    <%= message %>
+  </div>
+<% } %>
   <% if (twoFactorEnabled) { %>
     <!-- Disable 2FA Button -->
     <form action="/2fa/disable" method="POST" onsubmit="return confirm('Are you sure you want to disable Two-Factor Authentication?');">

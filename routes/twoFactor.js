@@ -84,13 +84,14 @@ router.post("/disable", (req, res) => {
   const { token } = req.body;
 
   if (!userId || !token) {
-    return res.status(400).json({ message: "Invalid request." });
+    req.session.message = "Invalid request.";
+    return res.redirect("/profile");
   }
-  console.log("User ID:", userId);
-  console.log("Token received:", token);
+
   db.query("SELECT two_factor_secret FROM users WHERE id = ?", [userId], (err, results) => {
     if (err || results.length === 0) {
-      return res.status(500).json({ message: "Failed to disable 2FA." });
+      req.session.message = "Failed to disable 2FA.";
+      return res.redirect("/profile");
     }
 
     const isValid = speakeasy.totp.verify({
@@ -106,15 +107,19 @@ router.post("/disable", (req, res) => {
         (err) => {
           if (err) {
             console.error("Error disabling 2FA:", err);
-            return res.status(500).json({ message: "Failed to disable 2FA." });
+            req.session.message = "Failed to disable 2FA.";
+            return res.redirect("/profile");
           }
-          return res.json({ message: "2FA disabled successfully!" });
+          req.session.message = "Successfully disabled two-factor authentication.";
+          return res.redirect("/profile");
         }
       );
     } else {
-      return res.status(400).json({ message: "Invalid token. Try again." });
+      req.session.message = "Invalid 2FA token. Try again.";
+      res.redirect("/profile");
     }
   });
 });
+
 
 module.exports = router;

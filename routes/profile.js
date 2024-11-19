@@ -50,11 +50,7 @@ router.get("/", isAuthenticated, (req, res) => {
 });
 
 router.post("/update", isAuthenticated, upload.single("avatar"), async (req, res) => {
-  console.log("Request body:", req.body);
-  console.log("Session userId:", req.session.userId);
-
   const { username, email, password } = req.body;
-
   if (!username || !email) {
     console.error("Validation failed: username or email is missing.");
     req.session.message = "Username and email cannot be empty.";
@@ -63,14 +59,12 @@ router.post("/update", isAuthenticated, upload.single("avatar"), async (req, res
   let avatarUrl = req.session.avatarUrl || "/images/default-avatar.png";
   if (req.file) {
     avatarUrl = `/uploads/${req.file.filename}`;
-    console.log("New avatar uploaded:", avatarUrl);
   }
 
   let passwordHash = null;
   if (password) {
     const salt = await bcrypt.genSalt(10);
     passwordHash = await bcrypt.hash(password, salt);
-    console.log("Password hash generated.");
   }
 
   const query = `
@@ -85,9 +79,6 @@ router.post("/update", isAuthenticated, upload.single("avatar"), async (req, res
     avatarUrl,
     req.session.userId,
   ];
-
-  console.log("Executing SQL Query:", query);
-  console.log("Query values:", values);
 
   db.query(query, values, (err) => {
     if (err) {
@@ -112,7 +103,7 @@ router.post("/delete", isAuthenticated, (req, res) => {
       return res.status(500).send("Error deleting account.");
     }
 
-    req.session.destroy((err) => {
+    req.session.destroy((err) => {  
       if (err) {
         console.error("Error destroying session:", err);
         return res.status(500).send("Error logging out.");
