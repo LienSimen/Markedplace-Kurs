@@ -5,6 +5,10 @@ const db = require("../config/db");
 const passport = require("passport");
 const router = express.Router();
 
+// for email verification and password reset
+const crypto = require("crypto");
+const sendEmail = require("../utils/email");
+
 // Middleware to check if the user is logged in
 const redirectIfLoggedIn = (req, res, next) => {
   if (req.session.isLoggedIn) {
@@ -162,7 +166,7 @@ router.post("/login", (req, res) => {
         req.session.avatarUrl = user.avatar_url;
         req.session.darkMode = user.dark_mode;
         req.session.message = "Successfully logged in!";
-        res.redirect("/");
+        res.redirect("/profile");
       }
     } else {
       req.session.message = "Invalid username or password.";
@@ -170,6 +174,60 @@ router.post("/login", (req, res) => {
     }
   });
 });
+
+router.get("/forgot-password", (req, res) => {
+  res.render("forgot-password", {
+    message: req.session.message || null, // Pass any flash messages
+    darkMode: req.session.darkMode || false, // Pass dark mode preference
+  });
+});
+
+
+router.post("/forgot-password", (req, res) => {
+  const { email } = req.body;
+
+  // Generate a new random password
+  const newPassword = crypto.randomBytes(8).toString("hex");
+  console.log("Generated Password:", newPassword); // Log the plain text password
+
+  // Hash the new password
+  bcrypt.hash(newPassword, 10, (err, hashedPassword) => {
+    if (err) {
+      console.error("Error hashing password:", err);
+      req.session.message = "An error occurred. Please try again.";
+      return res.redirect("/forgot-password");
+    }
+
+    console.log("Hashed Password:", hashedPassword); // Log the hashed password
+
+    // Update the user's password in the database
+    const query = "UPDATE users SET password_hash = ? WHERE email = ?";
+    db.query(query, [hashedPassword, email], (dbErr, result) => {
+      if (dbErr || result.affectedRows === 0) {
+        console.error("Error updating password:", dbErr);
+        req.session.message = "Email not found. Please try again.";
+        return res.redirect("/forgot-password");
+      }
+
+      // Send the new password via email
+      sendEmail(
+        email,
+        "Your New Password",
+        `Your new password is: ${newPassword}`
+      )
+        .then(() => {
+          req.session.message = "New password sent to your email.";
+          res.redirect("/login");
+        })
+        .catch((emailErr) => {
+          console.error("Error sending email:", emailErr);
+          req.session.message = "Failed to send email. Please try again.";
+          res.redirect("/forgot-password");
+        });
+    });
+  });
+});
+
 
 // 2FA Login Page
 router.get("/2fa/login", (req, res) => {
