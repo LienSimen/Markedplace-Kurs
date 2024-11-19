@@ -1,52 +1,44 @@
-
 <div class="mt-4">
   <% if (twoFactorEnabled) { %>
-    <!-- Disable 2FA Button -->
-    <form action="/2fa/disable" method="POST" onsubmit="return confirm('Are you sure you want to disable Two-Factor Authentication?');">
-      <div class="mb-3">
-        <label for="token" class="form-label">Enter 6-digit Code:</label>
-        <input
-          type="text"
-          id="token"
-          name="token"
-          class="form-control"
-          placeholder="123456"
-          required
-        />
-      </div>
-      <button type="submit" class="btn btn-danger">Disable Two-Factor Authentication</button>
-    </form>
+  <!-- Disable 2FA Button -->
+  <form action="/2fa/disable" method="POST" onsubmit="return confirm('Are you sure you want to disable Two-Factor Authentication?');">
+    <div class="mb-3">
+      <label for="token" class="form-label">Enter 6-digit Code:</label>
+      <input type="text" id="token" name="token" class="form-control" placeholder="123456" required />
+    </div>
+    <button type="submit" class="btn btn-danger">Disable Two-Factor Authentication</button>
+  </form>
   <% } else { %>
-    <!-- Enable 2FA Button -->
-    
-    <button id="enable2fa" class="btn btn-secondary">Start Two-Factor Authentication</button>
+  <!-- Enable 2FA Button -->
+
+  <button id="enable2fa" class="btn btn-secondary">Start Two-Factor Authentication</button>
   <% } %>
 </div>
-  <!-- 2FA Modal -->
-  <div id="modal-flash-message" class="alert alert-info d-none"></div>
-  <div class="modal fade" id="twoFactorModal" tabindex="-1" aria-labelledby="twoFactorModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="twoFactorModalLabel">Two-Factor Authentication</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- 2FA Modal -->
+<div id="modal-flash-message" class="alert alert-info d-none"></div>
+<div class="modal fade" id="twoFactorModal" tabindex="-1" aria-labelledby="twoFactorModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="twoFactorModalLabel">Two-Factor Authentication</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body d-none">
+        <div id="qrCodeContainer" class="text-center">
+          <p>Scan the QR code below using your authenticator app:</p>
+          <img id="qrCodeImage" src="" alt="QR Code" />
+          <p>Manual Entry Code:</p>
+          <code id="manualCode"></code>
         </div>
-        <div class="modal-body d-none">
-          <div id="qrCodeContainer" class="text-center">
-            <p>Scan the QR code below using your authenticator app:</p>
-            <img id="qrCodeImage" src="" alt="QR Code" />
-            <p>Manual Entry Code:</p>
-            <code id="manualCode"></code>
-          </div>
-          <form id="verify2faForm" class="mt-3 d-none">
-            <label for="token" class="form-label">Enter 6-digit Code:</label>
-            <input type="text" id="token" class="form-control" name="token" placeholder="123456" required />
-            <button type="submit" class="btn btn-primary mt-3">Verify and Enable</button>
-          </form>
-        </div>
+        <form id="verify2faForm" class="mt-3 d-none">
+          <label for="token" class="form-label">Enter 6-digit Code:</label>
+          <input type="text" id="token" class="form-control" name="token" placeholder="123456" required />
+          <button type="submit" class="btn btn-primary mt-3">Verify and Enable</button>
+        </form>
       </div>
     </div>
   </div>
+</div>
 </div>
 
 <script>
@@ -57,7 +49,7 @@
         throw new Error("Failed to fetch 2FA setup.");
       }
       const data = await response.json();
-      
+
       // Populate QR code and secret
       document.getElementById("qrCodeImage").src = data.qrCode;
       document.getElementById("manualCode").textContent = data.secret;
@@ -77,7 +69,7 @@
     } catch (error) {
       alert(error.message);
     }
-  }); 
+  });
 
   document.getElementById("verify2faForm")?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -86,8 +78,12 @@
     try {
       const response = await fetch("/2fa/verify", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          token
+        }),
       });
       const data = await response.json();
       if (response.ok) {

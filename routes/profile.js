@@ -45,16 +45,13 @@ router.get("/", isAuthenticated, (req, res) => {
 
     const user = results[0];
 
-    const flashMessage = req.session.message || null; // Retrieve flash message
-    req.session.message = null; // Clear it explicitly
-
     res.render("profile", {
       username: user.username,
       email: user.email,
       avatarUrl: user.avatar_url,
       darkMode: user.dark_mode,
       twoFactorEnabled: user.two_factor_enabled,
-      message: flashMessage,
+      message: req.session.message,
     });
   });
 });

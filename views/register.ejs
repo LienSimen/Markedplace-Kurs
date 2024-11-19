@@ -1,68 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Register</title>
-    <link rel="stylesheet" href="/css/bootstrap.min.css" />
 
-    <link rel="stylesheet" href="/css/style.css" />
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css" />
 
-  <body>
-    <div class="container">
-      <div
-        class="row justify-content-center align-items-center"
-        style="min-height: 100vh"
-      >
-        <div class="col-md-6">
-          <h1 class="text-center">Register</h1>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
 
-          <%- include('partials/_flashMessage') %>
-          <%- include('partials/_darkMode') %>
-          <form action="/register" method="POST">
-            <div class="mb-3">
-              <label for="username" class="form-label">Username</label>
-              <input
-                type="text"
-                class="form-control"
-                id="username"
-                name="username"
-                required
-              />
-            </div>
-            <div class="mb-3">
-              <label for="email" class="form-label">Email</label>
-              <input
-                type="email"
-                class="form-control"
-                id="email"
-                name="email"
-                required
-              />
-            </div>
-            <div class="mb-3">
-              <label for="password" class="form-label">Password</label>
-              <input
-                type="password"
-                class="form-control"
-                id="password"
-                name="password"
-                required
-              />
-            </div>
-            <button type="submit" class="btn btn-primary w-100">
-              Register
-            </button>
-          </form>
-        </div>
+<body>
+  <div class="container">
+    <div class="row justify-content-center align-items-center" style="min-height: 100vh">
+      <div class="col-md-6">
+        <h1 class="text-center">Register</h1>
+
+        <%- include('partials/_flashMessage') %>
+        <%- include('partials/_darkMode') %>
+        <form action="/register" method="POST">
+          <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" required />
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required />
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required />
+          </div>
+          <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Confirm Password</label>
+            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required />
+            <div id="bottomButtonsLogin">
+              <button type="submit" class="btn btn-primary w-100">Register
+              </button>
+
+              <button type="button" class="btn btn-secondary w-100" onclick="window.location.href='/login'">Login page</button>
+              <button type="button" class="btn btn-secondary w-100" onclick="window.location.href='/'">Home page
+              </button>
+
+              <button type="button" class="btn btn-danger w-100" onclick="window.location.href='/auth/google'">Register with Google
+              </button>
+
+              <button type="button" class="btn btn-dark w-100" onclick="window.location.href='/auth/github'">Register with GitHub
+              </button>
+        </form>
       </div>
     </div>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-      crossorigin="anonymous"
-    ></script>
-    <script src="/js/flashMessage.js"></script>
-  </body>
+  </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script src="/js/flashMessage.js"></script>
+</body>
+
 </html>

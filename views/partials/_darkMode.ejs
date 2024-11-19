@@ -5,10 +5,14 @@
 
     // Save the dark mode preference to the database
     fetch("/dark-mode", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ darkMode: isDarkMode }), // Sending boolean
-    })
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          darkMode: isDarkMode
+        }), // Sending boolean
+      })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to update dark mode preference.");
