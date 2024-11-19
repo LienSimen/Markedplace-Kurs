@@ -29,29 +29,37 @@
       </div>
 
       <!-- Email -->
-    <div class="mb-3">
-      <label for="email" class="form-label">Email</label>
-      <input type="email" class="form-control" id="email" name="email" value="<%= email %>" required />
-      <% if (message) { %>
-      <p class="text-info"><%= message %></p>
-      <% } %>
-    </div>
-
-
-      <!-- Password -->
       <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <input type="password" class="form-control" id="password" name="password" />
-        <p class="pwSubtext"> Leave blank if you don't want to change your password</p>
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" value="<%= email %>" required />
+      </div>
 
+      <!-- Password Section -->
+      <div class="mb-3">
+        <button class="btn btn-secondary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#passwordSection" aria-expanded="false" aria-controls="passwordSection">
+          Change Password
+        </button>
+
+        <div class="collapse mt-3" id="passwordSection">
+          <div class="mb-3">
+            <label for="currentPassword" class="form-label">Current Password</label>
+            <input type="password" class="form-control" id="currentPassword" name="currentPassword" />
+          </div>
+          <div class="mb-3">
+            <label for="newPassword" class="form-label">New Password</label>
+            <input type="password" class="form-control" id="newPassword" name="newPassword" />
+          </div>
+          <div class="mb-3">
+            <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+            <input type="password" class="form-control" id="confirmNewPassword" name="confirmNewPassword" />
+          </div>
+        </div>
       </div>
 
       <!-- Avatar -->
       <div class="mb-3">
         <label for="avatar" class="form-label">Avatar</label>
-        <!-- File input remains visible -->
         <input type="file" class="form-control" id="avatar" name="avatar" />
-
         <% if (avatarUrl) { %>
         <div class="mt-2">
           <img src="<%= avatarUrl %>" alt="Avatar" class="avatar-preview" style="width: 100px; height: 100px; border-radius: 50%; cursor: pointer;" onclick="document.getElementById('avatar').click()" />
@@ -65,13 +73,11 @@
         <button type="button" class="btn btn-primary" onclick="window.location.href='/'">
           Back to Home
         </button>
-    </form>
+        <form action="/profile/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.')">
+          <button type="submit" class="btn btn-danger">Delete Account</button>
+        </form>
+      </nav>
 
-    <!-- Delete Account Form -->
-    <form action="/profile/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.')">
-      <button type="submit" class="btn btn-danger">Delete Account</button>
-    </form>
-    </nav>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>

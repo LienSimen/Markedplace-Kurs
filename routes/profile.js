@@ -63,7 +63,13 @@ router.post(
   isAuthenticated,
   upload.single("avatar"),
   async (req, res) => {
-    const { username, email, password } = req.body;
+    const {
+      username,
+      email,
+      currentPassword,
+      newPassword,
+      confirmNewPassword,
+    } = req.body;
 
     // Validation for required fields
     if (!username || !email) {
@@ -76,14 +82,64 @@ router.post(
       avatarUrl = `/uploads/${req.file.filename}`;
     }
 
-    let passwordHash = null;
-    if (password) {
-      const salt = await bcrypt.genSalt(10);
-      passwordHash = await bcrypt.hash(password, salt);
-    }
-
     const currentEmail = req.session.email; // Get the user's current registered email
     const isEmailChanged = email !== currentEmail; // Check if the email has changed
+
+    // If password fields are provided, validate and update the password
+    if (currentPassword || newPassword || confirmNewPassword) {
+      if (!currentPassword || !newPassword || !confirmNewPassword) {
+        req.session.message = "All password fields are required.";
+        return res.redirect("/profile");
+      }
+
+      if (newPassword !== confirmNewPassword) {
+        req.session.message = "New password and confirmation do not match.";
+        return res.redirect("/profile");
+      }
+
+      // Verify the current password
+      db.query(
+        "SELECT password_hash FROM users WHERE id = ?",
+        [req.session.userId],
+        async (err, results) => {
+          if (err || results.length === 0) {
+            req.session.message =
+              "Error verifying current password. Please try again.";
+            return res.redirect("/profile");
+          }
+
+          const isPasswordValid = await bcrypt.compare(
+            currentPassword,
+            results[0].password_hash
+          );
+          if (!isPasswordValid) {
+            req.session.message = "Current password is incorrect.";
+            return res.redirect("/profile");
+          }
+
+          // Hash the new password
+          const salt = await bcrypt.genSalt(10);
+          const passwordHash = await bcrypt.hash(newPassword, salt);
+
+          // Update the password in the database
+          db.query(
+            "UPDATE users SET password_hash = ? WHERE id = ?",
+            [passwordHash, req.session.userId],
+            (err) => {
+              if (err) {
+                req.session.message =
+                  "Error updating password. Please try again.";
+                return res.redirect("/profile");
+              }
+
+              req.session.message = "Password updated successfully!";
+              res.redirect("/profile");
+            }
+          );
+        }
+      );
+      return; // Stop further processing as password update is handled
+    }
 
     // Handle email change separately
     if (isEmailChanged) {
@@ -117,20 +173,13 @@ router.post(
       return; // Stop further processing since email confirmation is pending
     }
 
-    // If no email change, update other fields (username, password, avatar)
+    // If no email change, update other fields (username, avatar)
     const query = `
     UPDATE users 
-    SET username = ?, ${
-      passwordHash ? "password_hash = ?," : ""
-    } avatar_url = ? 
+    SET username = ?, avatar_url = ? 
     WHERE id = ?
   `;
-    const values = [
-      username,
-      ...(passwordHash ? [passwordHash] : []),
-      avatarUrl,
-      req.session.userId,
-    ];
+    const values = [username, avatarUrl, req.session.userId];
 
     db.query(query, values, (err) => {
       if (err) {
