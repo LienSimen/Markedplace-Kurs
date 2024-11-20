@@ -46,6 +46,12 @@
               </button>
             </li>
             <li>
+              <button class="dropdown-item" onclick="toggleWormSim()">
+                Toggle Worm Simulation
+              </button>
+            </li>
+
+            <li>
               <form action="/logout" method="POST">
                 <button type="submit" class="dropdown-item">Log Out</button>
               </form>
@@ -59,13 +65,25 @@
         <a href="/auth/github" class="btn btn-dark w-100">Login with GitHub</a>
         <% } %>
       </div>
+
     </main>
-<iframe
-  id="wormIframe"
-  src="/worm-sim/index.html"
-  style="width: 100%; height: 100%; border: none;"
-  title="Worm Simulation"
-></iframe>
+    <iframe
+    id="wormIframe"
+    src="/worm-sim/index.html"
+    style="width: 100%; height: 100%; border: none; display: none;"
+    title="Worm Simulation"
+  ></iframe>
+  
 
   </body>
+  <script>
+    function toggleWormSim() {
+  const wormIframe = document.getElementById("wormIframe");
+  if (wormIframe.style.display === "none" || wormIframe.style.display === "") {
+    wormIframe.style.display = "block";
+  } else {
+    wormIframe.style.display = "none";
+  }
+}
+  </script>
 </html>

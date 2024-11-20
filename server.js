@@ -18,6 +18,13 @@ app.use(
   })
 );
 
+//  Flash Messages Middleware 
+app.use((req, res, next) => {
+  res.locals.message = req.session.message || null;
+  next();
+});
+
+
 //  Passport Middleware 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -27,12 +34,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-//  Flash Messages Middleware 
-app.use((req, res, next) => {
-  console.log("Middleware - Flash message:", req.session.message); // Debug log
-  res.locals.message = req.session.message || null;
-  next();
-});
 
 //  Template Engine Setup 
 app.set("view engine", "ejs");
