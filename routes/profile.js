@@ -52,7 +52,6 @@ router.get("/", isAuthenticated, (req, res) => {
       avatarUrl: user.avatar_url,
       darkMode: user.dark_mode,
       twoFactorEnabled: user.two_factor_enabled,
-      message: req.session.message,
     });
   });
 });

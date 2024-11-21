@@ -18,11 +18,13 @@ app.use(
   })
 );
 
-//  Flash Messages Middleware 
+// Flash Messages Middleware
 app.use((req, res, next) => {
   res.locals.message = req.session.message || null;
+  delete req.session.message; // Fix here: changed 'res.session' to 'req.session'
   next();
 });
+
 
 
 //  Passport Middleware 

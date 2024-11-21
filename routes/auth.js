@@ -161,7 +161,7 @@ router.post("/login", (req, res) => {
       req.session.email = user.email; // Store email in session
       req.session.avatarUrl = user.avatar_url;
       req.session.message = "Successfully logged in!";
-      res.redirect("/profile");
+      res.redirect("/");
     } else {
       req.session.message = "Invalid username or password.";
       res.redirect("/login");
