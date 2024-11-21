@@ -69,7 +69,7 @@ router.post(
       confirmNewPassword,
     } = req.body;
 
-    // Validation for required fields
+    // Ensure username and email fields are not empty
     if (!username || !email) {
       req.session.message = "Username and email cannot be empty.";
       return res.redirect("/profile");
@@ -80,10 +80,38 @@ router.post(
       avatarUrl = `/uploads/${req.file.filename}`;
     }
 
-    const currentEmail = req.session.email; // Get the user's current registered email
-    const isEmailChanged = email !== currentEmail; // Check if the email has changed
+    const currentEmail = req.session.email;
+    const isEmailChanged = email !== currentEmail;
 
-    // If password fields are provided, validate and update the password
+    // 1. Handle Email Change
+    if (isEmailChanged) {
+      const emailUpdateToken = crypto
+        .createHash("sha256")
+        .update(email + process.env.SECRET_KEY)
+        .digest("hex");
+
+      const confirmationUrl = `${req.protocol}://${req.get(
+        "host"
+      )}/profile/confirm-email?token=${emailUpdateToken}&newEmail=${encodeURIComponent(
+        email
+      )}`;
+      await sendEmail(
+        currentEmail,
+        "Confirm Your Email Update",
+        `Click this link to confirm email: ${confirmationUrl}`
+      )
+        .then(() => {
+          req.session.message =
+            "Confirmation email sent. Please verify your email.";
+        })
+        .catch((err) => {
+          console.error("Error sending email:", err);
+          req.session.message =
+            "Failed to send email confirmation. Please try again.";
+        });
+    }
+
+    // 2. Handle Password Change
     if (currentPassword || newPassword || confirmNewPassword) {
       if (!currentPassword || !newPassword || !confirmNewPassword) {
         req.session.message = "All password fields are required.";
@@ -95,93 +123,51 @@ router.post(
         return res.redirect("/profile");
       }
 
-      // Verify the current password
-      db.query(
-        "SELECT password_hash FROM users WHERE id = ?",
-        [req.session.userId],
-        async (err, results) => {
-          if (err || results.length === 0) {
-            req.session.message =
-              "Error verifying current password. Please try again.";
-            return res.redirect("/profile");
-          }
-
-          const isPasswordValid = await bcrypt.compare(
-            currentPassword,
-            results[0].password_hash
-          );
-          if (!isPasswordValid) {
-            req.session.message = "Current password is incorrect.";
-            return res.redirect("/profile");
-          }
-
-          // Hash the new password
-          const salt = await bcrypt.genSalt(10);
-          const passwordHash = await bcrypt.hash(newPassword, salt);
-
-          // Update the password in the database
-          db.query(
-            "UPDATE users SET password_hash = ? WHERE id = ?",
-            [passwordHash, req.session.userId],
-            (err) => {
-              if (err) {
-                req.session.message =
-                  "Error updating password. Please try again.";
-                return res.redirect("/profile");
-              }
-
-              req.session.message = "Password updated successfully!";
-              res.redirect("/profile");
-            }
-          );
+      const passwordQuery = "SELECT password_hash FROM users WHERE id = ?";
+      db.query(passwordQuery, [req.session.userId], async (err, results) => {
+        if (err || results.length === 0) {
+          req.session.message =
+            "Error verifying current password. Please try again.";
+          return res.redirect("/profile");
         }
-      );
-      return; // Stop further processing as password update is handled
+
+        const isPasswordValid = await bcrypt.compare(
+          currentPassword,
+          results[0].password_hash
+        );
+
+        if (!isPasswordValid) {
+          req.session.message = "Current password is incorrect.";
+          return res.redirect("/profile");
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+        const updatePasswordQuery =
+          "UPDATE users SET password_hash = ? WHERE id = ?";
+        db.query(
+          updatePasswordQuery,
+          [passwordHash, req.session.userId],
+          (err) => {
+            if (err) {
+              req.session.message = "Error updating password.";
+              return res.redirect("/profile");
+            }
+
+            req.session.message = "Password updated successfully!";
+          }
+        );
+      });
     }
 
-    // Handle email change separately
-    if (isEmailChanged) {
-      const emailUpdateToken = crypto
-        .createHash("sha256")
-        .update(email + process.env.SECRET_KEY)
-        .digest("hex");
-
-      // Send confirmation email to the current registered email
-      const confirmationUrl = `${req.protocol}://${req.get(
-        "host"
-      )}/profile/confirm-email?token=${emailUpdateToken}&newEmail=${encodeURIComponent(
-        email
-      )}`;
-      sendEmail(
-        currentEmail, // Send the email to the current registered email
-        "Confirm Your Email Update",
-        `Click the following link to confirm your email update: ${confirmationUrl}`
-      )
-        .then(() => {
-          req.session.message =
-            "Confirmation email sent to your registered email address.";
-          res.redirect("/profile");
-        })
-        .catch((emailErr) => {
-          console.error("Error sending confirmation email:", emailErr);
-          req.session.message =
-            "Failed to send confirmation email. Please try again.";
-          res.redirect("/profile");
-        });
-      return; // Stop further processing since email confirmation is pending
-    }
-
-    // If no email change, update other fields (username, avatar)
+    // 3. Handle Username and Avatar Change
     const query = `
-    UPDATE users 
-    SET username = ?, avatar_url = ? 
-    WHERE id = ?
-  `;
-    const values = [username, avatarUrl, req.session.userId];
-
-    db.query(query, values, (err) => {
+      UPDATE users 
+      SET username = ?, avatar_url = ? 
+      WHERE id = ?
+    `;
+    db.query(query, [username, avatarUrl, req.session.userId], (err) => {
       if (err) {
-        req.session.message = "Error updating profile. Please try again.";
+        req.session.message = "Error updating profile.";
         return res.redirect("/profile");
       }
 
@@ -192,6 +178,8 @@ router.post(
     });
   }
 );
+
+
 
 router.get("/confirm-email", isAuthenticated, (req, res) => {
   const { token, newEmail } = req.query;

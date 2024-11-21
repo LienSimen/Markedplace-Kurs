@@ -155,10 +155,20 @@ router.post("/login", (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
     if (isPasswordValid) {
+      // Check if 2FA is enabled
+      if (user.two_factor_enabled) {
+        req.session.isLoggedIn = false; // Do not mark as logged in yet
+        req.session.userId = user.id; // Store user ID for 2FA verification
+        req.session.username = user.username;
+        req.session.message = "2FA verification required.";
+        return res.redirect("/2fa/login");
+      }
+
+      // If 2FA is not enabled, proceed with login
       req.session.isLoggedIn = true;
-      req.session.userId = user.id; // Store user ID in session
-      req.session.username = user.username; // Store username in session
-      req.session.email = user.email; // Store email in session
+      req.session.userId = user.id;
+      req.session.username = user.username;
+      req.session.email = user.email;
       req.session.avatarUrl = user.avatar_url;
       req.session.message = "Successfully logged in!";
       res.redirect("/");
@@ -168,6 +178,7 @@ router.post("/login", (req, res) => {
     }
   });
 });
+
 
 router.get("/forgot-password", (req, res) => {
   res.render("forgot-password", {
