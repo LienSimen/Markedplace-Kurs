@@ -6,6 +6,14 @@ const router = express.Router();
 const crypto = require("crypto");
 const sendEmail = require("../utils/email"); // Utility for sending emails
 
+//  Middleware to Check Authentication 
+function isAuthenticated(req, res, next) {
+  if (req.session || req.session.isLoggedIn) {
+    return next();
+  }
+  res.redirect("/login");
+}
+
 const upload = multer({
   dest: "public/uploads/", // Destination folder for uploaded files
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB cap
@@ -23,15 +31,6 @@ const upload = multer({
     return cb(null, false); // Reject file but don't trigger a fatal error
   },
 });
-
-
-//  Middleware to Check Authentication 
-function isAuthenticated(req, res, next) {
-  if (req.session || req.session.isLoggedIn) {
-    return next();
-  }
-  res.redirect("/login");
-}
 
 //  GET /profile 
 router.get("/", isAuthenticated, (req, res) => {
@@ -230,8 +229,6 @@ router.get("/confirm-email", isAuthenticated, (req, res) => {
     res.redirect("/profile");
   });
 });
-
-
 
 //  POST /profile/delete 
 router.post("/delete", isAuthenticated, (req, res) => {
